@@ -1,7 +1,7 @@
 package com.jakubflis.elektronik;
 
-/**
- * Created by jakubf on 01/01/16.
- */
 public class Constants {
+    public static final float VIEWPORT_WIDTH = 5.0f;
+
+    public static final float VIEWPORT_HEIGHT = 5.0f;
 }
