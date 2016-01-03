@@ -4,10 +4,10 @@ import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 
 public class WorldController extends InputAdapter {
@@ -16,27 +16,22 @@ public class WorldController extends InputAdapter {
     public int selectedSprite;
     private final int SPRITE_WIDTH = 32;
     private final int SPRITE_HEIGHT = 32;
-
-    //the board is upside-down
-    //0 - non-collectable BoardPoint
-    //1 - collectable level 1 BoardPoint
-    //2 - collectable level 2 BoardPoint
-    //3 - starting point
-    private int[][] _testBoard = new int[][]{
-            { 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 2, 1, 2, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 2, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 2, 0, 0, 0 },
-            { 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0 },
-            { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
-            { 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
-            { 0, 0, 3, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1, 0, 0 }
-    };
-
     private static final String TAG = WorldController.class.getName();
+    private int[][] _gameBoard = new int[][]{
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 1, 1, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 13, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0 },
+            { 0, 12, 1, 1, 1, 1, 2, 10, 10, 3, 1, 13, 5, 13, 1, 1, 13, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 6, 1, 1, 5, 0, 13, 1, 1, 4, 0, 0, 0, 0, 15, 10, 16, 6, 1, 12, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 13, 4, 14, 0, 0, 0, 0, 0, 18, 0, 14, 0, 0, 0 },
+            { 0, 12, 1, 1, 1, 4, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 7, 13, 1, 1, 4, 0, 14, 0, 14, 0, 12, 0 },
+            { 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 14, 0, 14, 0, 14, 0 },
+            { 0, 0, 0, 0, 0, 7, 13, 1, 13, 0, 13, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 13, 0, 13, 0, 13, 0, 14, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 10, 10, 0, 0, 0, 14, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 14, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 2, 10, 10, 3, 1, 1, 11, 1, 2, 10, 3, 1, 1, 1, 1, 1, 1, 5, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    };
 
     public WorldController() {
         init();
@@ -54,109 +49,151 @@ public class WorldController extends InputAdapter {
     }
 
     private void initTestObjects() {
-        float squareSize = 0.3f;
+        float squareSize = 0.25f;
 
-        int numberOfArrayRows = _testBoard.length;
-        int numberOfArrayCols = _testBoard[0].length;
+        int numberOfArrayRows = _gameBoard.length;
+        int numberOfArrayCols = _gameBoard[0].length;
 
         testSprites = new BoardPointSprite[numberOfArrayCols * numberOfArrayRows];
 
-        float tempPosition = -3.5f;
-        float tempYPosition = -2.0f;
+        float tempPosition = -3.3f;
+        float tempYPosition = 2.0f;
         int counter = 0;
 
-        for (int[] a_testBoard : _testBoard) {
+        for (int[] a_testBoard : _gameBoard) {
 
             for (int i = 0; i < numberOfArrayCols; i++) {
                 BoardPointSprite sprite;
+                String pointTextureAsset = getBoartPointAssetName(a_testBoard[i]);
 
-                switch (a_testBoard[i]) {
-                    case 0:
-                        sprite = new BoardPointSprite(createBoardPointTexture(EnumManager.PathPoint.BLANK_POINT));
-                        sprite.isCollectable = false;
-                        break;
-                    case 1:
-                        sprite = new BoardPointSprite(createBoardPointTexture(EnumManager.PathPoint.LEVEL_1_POINT));
-                        sprite.isCollectable = true;
-                        break;
-                    case 2:
-                        sprite = new BoardPointSprite(createBoardPointTexture(EnumManager.PathPoint.LEVEL_2_POINT));
-                        sprite.isCollectable = true;
-                        break;
-                    case 3:
-                        sprite = new BoardPointSprite(createBoardPointTexture(EnumManager.PathPoint.STARTING_POINT));
-                        sprite.isCollectable = false;
-                        break;
-                    default:
-                        sprite = new BoardPointSprite(createBoardPointTexture(EnumManager.PathPoint.BLANK_POINT));
-                        sprite.isCollectable = false;
-                        break;
+                if (pointTextureAsset != null) {
+                    sprite = new BoardPointSprite(new Texture(pointTextureAsset));
+                    sprite.isCollectable = true;
+                } else {
+                    sprite = new BoardPointSprite(createBlankBoardPointTexture());
+                    sprite.isCollectable = false;
                 }
+
+
                 sprite.isCollected = false;
                 sprite.setSize(squareSize, squareSize);
                 sprite.setOrigin(sprite.getWidth() / 2.0f, sprite.getHeight() / 2.0f);
                 sprite.setPosition(tempPosition, tempYPosition);
 
                 testSprites[counter++] = sprite;
-
                 tempPosition += squareSize;
             }
 
-            tempYPosition += squareSize;
-            tempPosition = -3.5f;
+            tempYPosition -= squareSize;
+            tempPosition = -3.3f;
         }
 
         selectedSprite = 0;
     }
 
-    private Texture createBoardPointTexture(EnumManager.PathPoint pathPointKind) {
+    private Texture createBlankBoardPointTexture() {
         Pixmap pixmap = new Pixmap(SPRITE_WIDTH, SPRITE_HEIGHT, Format.RGBA8888);
+        pixmap.setColor(38.0f / 255.0f, 102.0f / 255.0f, 41.0f / 255.0f, 0);
+        pixmap.fill();
 
-        switch (pathPointKind) {
-            case BLANK_POINT:
-                pixmap.setColor(38.0f / 255.0f, 102.0f / 255.0f, 41.0f / 255.0f, 1);
+        return new Texture(pixmap);
+    }
+
+    private String getBoartPointAssetName(int boardCode) {
+        switch (boardCode) {
+            case 1:
+                return "normal.png";
+            case 2:
+                return "crescendo.png";
+            case 3:
+                return "decrescendo.png";
+            case 4:
+                return "corner_1.png";
+            case 5:
+                return "corner_2.png";
+            case 6:
+                return "corner_3.png";
+            case 7:
+                return "corner_4.png";
+            case 8:
+                return "lowerhalf.png";
+            case 9:
+                return "upperhalf.png";
+            case 10:
+                return "full.png";
+            case 11:
+                return "connector_1.png";
+            case 12:
+                return "full_circle.png";
+            case 13:
+                return "empty_circle.png";
+            case 14:
+                return "normal_v.png";
+            case 15:
+                return "righthalf.png";
+            case 16:
+                return "lefthalf.png";
+            case 17:
+                return "crescendo_v.png";
+            case 18:
+                return "decrescendo_v.png";
+            default:
+                return null;
+        }
+    }
+
+    private void moveCamera (float x, float y) {
+        x += cameraHelper.getPosition().x;
+        y += cameraHelper.getPosition().y;
+        cameraHelper.setPosition(x, y);
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        switch (keycode) {
+            case Keys.R:
+                init();
+
                 break;
-            case LEVEL_1_POINT:
-                pixmap.setColor(75.0f / 255.0f, 201.0f / 255.0f, 81.0f / 255.0f, 1);
+            case Keys.SPACE:
+                selectedSprite = (selectedSprite + 1) % testSprites.length;
+
+                if (cameraHelper.hasTarget()) {
+                    cameraHelper.setTarget(testSprites[selectedSprite]);
+                }
+
                 break;
-            case LEVEL_2_POINT:
-                pixmap.setColor(217.0f / 255.0f, 187.0f / 255.0f, 80.0f / 255.0f, 1);
-                break;
-            case STARTING_POINT:
-                pixmap.setColor(0, 0, 0, 1);
-                break;
-            case CONNECTION_POINT:
+            case Keys.ENTER:
+                cameraHelper.setTarget(cameraHelper.hasTarget() ? null : testSprites[selectedSprite]);
+
                 break;
         }
 
-        pixmap.fill();
-        pixmap.setColor(0, 0, 0, 0.5f);
-        pixmap.drawRectangle(0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
+        return false;
+    }
 
-        return new Texture(pixmap);
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
+
+        cameraHelper.camera.unproject(draggedTouch);
+
+        for (BoardPointSprite sprite : testSprites) {
+            if (sprite.getBoundingRectangle().contains(draggedTouch.x, draggedTouch.y)) {
+
+                if (sprite.isCollectable) {
+                    sprite.setColor(Color.CHARTREUSE);
+                    sprite.isCollected = true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void handleInputDigit(float deltaTime) {
         if (Gdx.app.getType() != Application.ApplicationType.Desktop) {
             return;
-        }
-
-        float spriteMoveSpeed = 5 * deltaTime;
-
-        if (Gdx.input.isKeyPressed(Keys.A)) {
-            moveSelectedSprite(-1 * spriteMoveSpeed, 0);
-        }
-
-        if (Gdx.input.isKeyPressed(Keys.W)) {
-            moveSelectedSprite(0, spriteMoveSpeed);
-        }
-
-        if (Gdx.input.isKeyPressed(Keys.S)) {
-            moveSelectedSprite(0, -1 * spriteMoveSpeed);
-        }
-
-        if (Gdx.input.isKeyPressed(Keys.D)) {
-            moveSelectedSprite(spriteMoveSpeed, 0);
         }
 
         // Camera Controls (move)
@@ -206,62 +243,5 @@ public class WorldController extends InputAdapter {
         if (Gdx.input.isKeyPressed(Keys.SLASH)) {
             cameraHelper.setZoom(1);
         }
-    }
-
-    private void moveSelectedSprite(float x, float y) {
-        Gdx.app.debug(TAG, "2. Coordinates: " + x + " " + y);
-        testSprites[selectedSprite].translate(x, y);
-    }
-
-    private void moveCamera (float x, float y) {
-        x += cameraHelper.getPosition().x;
-        y += cameraHelper.getPosition().y;
-        cameraHelper.setPosition(x, y);
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        if (keycode == Keys.R) {
-            init();
-            Gdx.app.debug(TAG, "Game wolrd resetted.");
-        } else if (keycode == Keys.SPACE) {
-            selectedSprite = (selectedSprite + 1) % testSprites.length;
-
-            if (cameraHelper.hasTarget()) {
-                cameraHelper.setTarget(testSprites[selectedSprite]);
-            }
-            Gdx.app.debug(TAG, "Sprite #" + selectedSprite + " selected");
-        } else if (keycode == Keys.ENTER) {
-            cameraHelper.setTarget(cameraHelper.hasTarget() ? null : testSprites[selectedSprite]);
-            Gdx.app.debug(TAG, "Camera follow enabled: " + cameraHelper.hasTarget());
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        Vector3 worldCoordinates = new Vector3(screenX - MathUtils.floor(SPRITE_WIDTH / 2), screenY + MathUtils.floor(SPRITE_HEIGHT / 2), 0);
-        cameraHelper.camera.unproject(worldCoordinates);
-
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
-
-        cameraHelper.camera.unproject(draggedTouch);
-
-        for (BoardPointSprite sprite : testSprites) {
-            if (sprite.getBoundingRectangle().contains(draggedTouch.x, draggedTouch.y)) {
-
-                if (sprite.isCollectable) {
-                    sprite.setAlpha(0);
-                }
-            }
-        }
-
-        return false;
     }
 }
