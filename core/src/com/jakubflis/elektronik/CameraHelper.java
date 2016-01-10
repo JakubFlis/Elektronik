@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 
 public class CameraHelper {
     public OrthographicCamera camera;
+    public OrthographicCamera guiCamera;
     private static final String TAG = CameraHelper.class.getName();
     private final float MAX_ZOOM_IN = 0.25f;
     private final float MAX_ZOOM_OUT = 10.0f;
@@ -63,8 +64,9 @@ public class CameraHelper {
         return hasTarget() && _target.equals(target);
     }
 
-    public void applyTo (OrthographicCamera camera) {
+    public void applyTo (OrthographicCamera camera, OrthographicCamera guiCamera) {
         this.camera = camera;
+        this.guiCamera = guiCamera;
 
         camera.position.x = _position.x;
         camera.position.y = _position.y;

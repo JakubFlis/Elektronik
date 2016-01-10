@@ -13,7 +13,12 @@ import com.badlogic.gdx.math.Vector3;
 public class WorldController extends InputAdapter {
     public CameraHelper cameraHelper;
     public BoardPointSprite[] testSprites;
+    public AssetsFonts fonts;
     public int selectedSprite;
+    public int blowStrength;
+    public float percentageScore;
+    private int _totalCollected;
+    private int _totalCollectables;
     private final int SPRITE_WIDTH = 32;
     private final int SPRITE_HEIGHT = 32;
     private static final String TAG = WorldController.class.getName();
@@ -40,7 +45,11 @@ public class WorldController extends InputAdapter {
     public void init() {
         Gdx.input.setInputProcessor(this);
         cameraHelper = new CameraHelper();
+        fonts = new AssetsFonts();
+        blowStrength = 0;
         initTestObjects();
+        _totalCollected = 0;
+        _totalCollectables = getNumberOfClickableTiles(testSprites);
     }
 
     public void update (float deltaTime) {
@@ -49,7 +58,7 @@ public class WorldController extends InputAdapter {
     }
 
     private void initTestObjects() {
-        float squareSize = 0.25f;
+        float squareSize = 0.3f;
 
         int numberOfArrayRows = _gameBoard.length;
         int numberOfArrayCols = _gameBoard[0].length;
@@ -142,6 +151,16 @@ public class WorldController extends InputAdapter {
         }
     }
 
+    private int getNumberOfClickableTiles(BoardPointSprite[] spriteTable) {
+        int counter = 0;
+
+        for (BoardPointSprite sprite : spriteTable) {
+            counter += (sprite.isCollectable ? 1 : 0);
+        }
+
+        return counter;
+    }
+
     private void moveCamera (float x, float y) {
         x += cameraHelper.getPosition().x;
         y += cameraHelper.getPosition().y;
@@ -181,14 +200,34 @@ public class WorldController extends InputAdapter {
         for (BoardPointSprite sprite : testSprites) {
             if (sprite.getBoundingRectangle().contains(draggedTouch.x, draggedTouch.y)) {
 
-                if (sprite.isCollectable) {
+                if (sprite.isCollectable && !sprite.isCollected) {
                     sprite.setColor(Color.CHARTREUSE);
                     sprite.isCollected = true;
+                    _totalCollected++;
+
+                    percentageScore = computeCopletePercentage();
                 }
             }
         }
 
+        Gdx.app.debug(TAG, "Completeness: %" + computeCopletePercentage() + " Equation: " + ((float)_totalCollected / (float)_totalCollectables) * 100);
+
         return false;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        if (amount > 0 && blowStrength < 100) {
+            blowStrength++;
+        } else if (amount < 0 && blowStrength > 0) {
+            blowStrength--;
+        }
+
+        return false;
+    }
+
+    public float computeCopletePercentage() {
+        return ((float)_totalCollected / (float)_totalCollectables) * 100;
     }
 
     private void handleInputDigit(float deltaTime) {
@@ -242,6 +281,19 @@ public class WorldController extends InputAdapter {
 
         if (Gdx.input.isKeyPressed(Keys.SLASH)) {
             cameraHelper.setZoom(1);
+        }
+
+        //Blow simulator
+        if (Gdx.input.isKeyPressed(Keys.X) && blowStrength < 100) {
+            blowStrength++;
+
+            Gdx.app.debug(TAG, "Blow strength: " + blowStrength + "%");
+        }
+
+        if (Gdx.input.isKeyPressed(Keys.Z) && blowStrength > 0) {
+            blowStrength--;
+
+            Gdx.app.debug(TAG, "Blow strength: " + blowStrength + "%");
         }
     }
 }
