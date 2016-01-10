@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 public class BoardPointSprite extends Sprite {
     public boolean isCollected;
     public boolean isCollectable;
+    public boolean isOverflowedTile;
 
     public BoardPointSprite(Texture texture) {
         super(texture);

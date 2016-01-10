@@ -34,8 +34,8 @@ public class WorldRenderer implements Disposable {
         _cameraGui.update();
 
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("images/Symtext.ttf"));
-        font = createFont(generator, 15);
-        fontResult = createFont(generator, 15);
+        font = createFont(generator, 16);
+        fontResult = createFont(generator, 16);
     }
 
     public void render() {
@@ -68,13 +68,13 @@ public class WorldRenderer implements Disposable {
         _batch.begin();
 
         font.setColor(0.3f, 1.0f, 1.0f, 1.0f);
-        font.getData().setScale(.08f, .08f);
+        font.getData().setScale(.07f, .07f);
         font.draw(_batch, "" + _worldController.blowStrength + "%",
                         -1.0f * Constants.VIEWPORT_GUI_WIDTH + 2.2f,
                         (Constants.VIEWPORT_GUI_HEIGHT / 2) - 1.2f);
 
         fontResult.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        fontResult.getData().setScale(.08f, .08f);
+        fontResult.getData().setScale(.07f, .07f);
         fontResult.draw(_batch, "" + new DecimalFormat("#.0").format(_worldController.percentageScore) + "%",
                         -1.0f * Constants.VIEWPORT_GUI_WIDTH + 2.2f,
                         -1.0f * (Constants.VIEWPORT_GUI_HEIGHT / 2) + 1.2f);

@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class WorldController extends InputAdapter {
@@ -19,9 +20,8 @@ public class WorldController extends InputAdapter {
     public float percentageScore;
     private int _totalCollected;
     private int _totalCollectables;
-    private final int SPRITE_WIDTH = 32;
-    private final int SPRITE_HEIGHT = 32;
     private static final String TAG = WorldController.class.getName();
+    private Vector3 _lastDragCoords;
     private int[][] _gameBoard = new int[][]{
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 1, 1, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -32,11 +32,13 @@ public class WorldController extends InputAdapter {
             { 0, 12, 1, 1, 1, 4, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 7, 13, 1, 1, 4, 0, 14, 0, 14, 0, 12, 0 },
             { 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 14, 0, 14, 0, 14, 0 },
             { 0, 0, 0, 0, 0, 7, 13, 1, 13, 0, 13, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 13, 0, 13, 0, 13, 0, 14, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 10, 10, 0, 0, 0, 14, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 14, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 19, 19, 0, 0, 0, 14, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 14, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 2, 10, 10, 3, 1, 1, 11, 1, 2, 10, 3, 1, 1, 1, 1, 1, 1, 5, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 19, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
+
+    private Vector3 testVector;
 
     public WorldController() {
         init();
@@ -50,6 +52,8 @@ public class WorldController extends InputAdapter {
         initTestObjects();
         _totalCollected = 0;
         _totalCollectables = getNumberOfClickableTiles(testSprites);
+        percentageScore = 0;
+        _lastDragCoords = new Vector3(0, 0, 0);
     }
 
     public void update (float deltaTime) {
@@ -58,22 +62,22 @@ public class WorldController extends InputAdapter {
     }
 
     private void initTestObjects() {
-        float squareSize = 0.3f;
-
         int numberOfArrayRows = _gameBoard.length;
         int numberOfArrayCols = _gameBoard[0].length;
 
         testSprites = new BoardPointSprite[numberOfArrayCols * numberOfArrayRows];
 
-        float tempPosition = -3.3f;
-        float tempYPosition = 2.0f;
+        Vector2 startingPosition = BoardPointHelper.getFirstBoardPointCoords(_gameBoard);
+
+        float tempPosition = startingPosition.x;
+        float tempYPosition = startingPosition.y;
         int counter = 0;
 
         for (int[] a_testBoard : _gameBoard) {
 
             for (int i = 0; i < numberOfArrayCols; i++) {
                 BoardPointSprite sprite;
-                String pointTextureAsset = getBoartPointAssetName(a_testBoard[i]);
+                String pointTextureAsset = BoardPointHelper.getBoartPointAssetName(a_testBoard[i]);
 
                 if (pointTextureAsset != null) {
                     sprite = new BoardPointSprite(new Texture(pointTextureAsset));
@@ -83,72 +87,29 @@ public class WorldController extends InputAdapter {
                     sprite.isCollectable = false;
                 }
 
-
                 sprite.isCollected = false;
-                sprite.setSize(squareSize, squareSize);
+                sprite.isOverflowedTile = BoardPointHelper.getBoartPointOverflowedStatus(a_testBoard[i]);
+                sprite.setSize(Constants.SQUARE_SIZE, Constants.SQUARE_SIZE);
                 sprite.setOrigin(sprite.getWidth() / 2.0f, sprite.getHeight() / 2.0f);
                 sprite.setPosition(tempPosition, tempYPosition);
 
                 testSprites[counter++] = sprite;
-                tempPosition += squareSize;
+                tempPosition += Constants.SQUARE_SIZE;
             }
 
-            tempYPosition -= squareSize;
-            tempPosition = -3.3f;
+            tempYPosition -= Constants.SQUARE_SIZE;
+            tempPosition = startingPosition.x;
         }
 
         selectedSprite = 0;
     }
 
     private Texture createBlankBoardPointTexture() {
-        Pixmap pixmap = new Pixmap(SPRITE_WIDTH, SPRITE_HEIGHT, Format.RGBA8888);
+        Pixmap pixmap = new Pixmap(Constants.SPRITE_WIDTH, Constants.SPRITE_HEIGHT, Format.RGBA8888);
         pixmap.setColor(38.0f / 255.0f, 102.0f / 255.0f, 41.0f / 255.0f, 0);
         pixmap.fill();
 
         return new Texture(pixmap);
-    }
-
-    private String getBoartPointAssetName(int boardCode) {
-        switch (boardCode) {
-            case 1:
-                return "normal.png";
-            case 2:
-                return "crescendo.png";
-            case 3:
-                return "decrescendo.png";
-            case 4:
-                return "corner_1.png";
-            case 5:
-                return "corner_2.png";
-            case 6:
-                return "corner_3.png";
-            case 7:
-                return "corner_4.png";
-            case 8:
-                return "lowerhalf.png";
-            case 9:
-                return "upperhalf.png";
-            case 10:
-                return "full.png";
-            case 11:
-                return "connector_1.png";
-            case 12:
-                return "full_circle.png";
-            case 13:
-                return "empty_circle.png";
-            case 14:
-                return "normal_v.png";
-            case 15:
-                return "righthalf.png";
-            case 16:
-                return "lefthalf.png";
-            case 17:
-                return "crescendo_v.png";
-            case 18:
-                return "decrescendo_v.png";
-            default:
-                return null;
-        }
     }
 
     private int getNumberOfClickableTiles(BoardPointSprite[] spriteTable) {
@@ -193,26 +154,60 @@ public class WorldController extends InputAdapter {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
-
-        cameraHelper.camera.unproject(draggedTouch);
+        _lastDragCoords.x = screenX;
+        _lastDragCoords.y = screenY;
+        cameraHelper.camera.unproject(_lastDragCoords);
 
         for (BoardPointSprite sprite : testSprites) {
-            if (sprite.getBoundingRectangle().contains(draggedTouch.x, draggedTouch.y)) {
-
-                if (sprite.isCollectable && !sprite.isCollected) {
-                    sprite.setColor(Color.CHARTREUSE);
-                    sprite.isCollected = true;
-                    _totalCollected++;
-
-                    percentageScore = computeCopletePercentage();
-                }
-            }
+            collectIfCollectable(sprite, _lastDragCoords.x, _lastDragCoords.y, false);
+            checkOveflowedBoardTiles(_lastDragCoords);
         }
 
-        Gdx.app.debug(TAG, "Completeness: %" + computeCopletePercentage() + " Equation: " + ((float)_totalCollected / (float)_totalCollectables) * 100);
-
         return false;
+    }
+
+    public void checkOveflowedBoardTiles(Vector3 baseTouchCoords) {
+        if (blowStrength >= 25 && blowStrength < 50) {
+
+            for (BoardPointSprite sprite : testSprites) {
+                //vertical:
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + Constants.SQUARE_SIZE, true);
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y - Constants.SQUARE_SIZE, true);
+                //horizontal:
+                collectIfCollectable(sprite, baseTouchCoords.x + Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+                collectIfCollectable(sprite, baseTouchCoords.x - Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+            }
+        } else if (blowStrength >= 50 && blowStrength < 75) {
+            for (BoardPointSprite sprite : testSprites) {
+                //vertical:
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + 2 * Constants.SQUARE_SIZE, true);
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + Constants.SQUARE_SIZE, true);
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y - Constants.SQUARE_SIZE, true);
+                collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y - 2 * Constants.SQUARE_SIZE, true);
+                //horizontal:
+                collectIfCollectable(sprite, baseTouchCoords.x + 2 * Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+                collectIfCollectable(sprite, baseTouchCoords.x + Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+                collectIfCollectable(sprite, baseTouchCoords.x - Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+                collectIfCollectable(sprite, baseTouchCoords.x - 2 * Constants.SQUARE_SIZE, baseTouchCoords.y, true);
+            }
+        }
+    }
+
+    private void collectIfCollectable(BoardPointSprite sprite, float x, float y, boolean isOverflowedAllowed) {
+        if (sprite.getBoundingRectangle().contains(x, y)) {
+
+            if (sprite.isOverflowedTile != isOverflowedAllowed) {
+                return;
+            }
+
+            if (sprite.isCollectable && !sprite.isCollected) {
+                sprite.setColor(Color.CHARTREUSE);
+                sprite.isCollected = true;
+                _totalCollected++;
+
+                percentageScore = computeCopletePercentage();
+            }
+        }
     }
 
     @Override
@@ -222,6 +217,28 @@ public class WorldController extends InputAdapter {
         } else if (amount < 0 && blowStrength > 0) {
             blowStrength--;
         }
+
+        checkOveflowedBoardTiles(_lastDragCoords);
+
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
+        cameraHelper.camera.unproject(draggedTouch);
+
+        Gdx.app.debug(TAG, "Coords: " + draggedTouch.x + " " + draggedTouch.y);
+
+        //Gdx.app.debug(TAG, "Difference: " + (draggedTouch.x - testVector.x) + " " + (draggedTouch.y - testVector.y));
+
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        testVector = new Vector3(screenX, screenY, 0);
+        cameraHelper.camera.unproject(testVector);
 
         return false;
     }
@@ -287,13 +304,13 @@ public class WorldController extends InputAdapter {
         if (Gdx.input.isKeyPressed(Keys.X) && blowStrength < 100) {
             blowStrength++;
 
-            Gdx.app.debug(TAG, "Blow strength: " + blowStrength + "%");
+            checkOveflowedBoardTiles(_lastDragCoords);
         }
 
         if (Gdx.input.isKeyPressed(Keys.Z) && blowStrength > 0) {
             blowStrength--;
 
-            Gdx.app.debug(TAG, "Blow strength: " + blowStrength + "%");
+            checkOveflowedBoardTiles(_lastDragCoords);
         }
     }
 }

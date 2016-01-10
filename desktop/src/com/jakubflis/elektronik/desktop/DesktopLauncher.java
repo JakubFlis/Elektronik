@@ -9,7 +9,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 800;
 		config.height = 480;
-		config.title = "test";
+		config.title = "Elektronik";
 		config.useGL30 = false;
 		
 		new LwjglApplication(new JFElektronik(), config);
