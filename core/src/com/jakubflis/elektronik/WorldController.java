@@ -1,6 +1,7 @@
 package com.jakubflis.elektronik;
 
 import com.badlogic.gdx.Application;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Input.Keys;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -15,14 +17,18 @@ public class WorldController extends InputAdapter {
     public CameraHelper cameraHelper;
     public BoardPointSprite[] testSprites;
     public AssetsFonts fonts;
+    public Sprite button;
     public int selectedSprite;
     public int blowStrength;
+    public float secondsLeft;
     public float percentageScore;
+    public boolean isCountdownWorking;
+    private Game _game;
     private int _totalCollected;
     private int _totalCollectables;
     private static final String TAG = WorldController.class.getName();
     private Vector3 _lastDragCoords;
-    private int[][] _gameBoard = new int[][]{
+    private int[][] _gameBoard = new int[][] {
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 1, 1, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 13, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0 },
@@ -40,25 +46,34 @@ public class WorldController extends InputAdapter {
 
     private Vector3 testVector;
 
-    public WorldController() {
+    public WorldController(Game game) {
+        _game = game;
         init();
     }
 
     public void init() {
-        Gdx.input.setInputProcessor(this);
         cameraHelper = new CameraHelper();
+        initTestObjects();
+        initButtons();
         fonts = new AssetsFonts();
         blowStrength = 0;
-        initTestObjects();
         _totalCollected = 0;
         _totalCollectables = getNumberOfClickableTiles(testSprites);
         percentageScore = 0;
         _lastDragCoords = new Vector3(0, 0, 0);
+        secondsLeft = 60;
+        isCountdownWorking = true;
+
+        Gdx.input.setInputProcessor(this);
     }
 
     public void update (float deltaTime) {
         handleInputDigit(deltaTime);
         cameraHelper.update(deltaTime);
+    }
+
+    private void backToMenu() {
+        _game.setScreen(new MenuScreen(_game));
     }
 
     private void initTestObjects() {
@@ -104,6 +119,22 @@ public class WorldController extends InputAdapter {
         selectedSprite = 0;
     }
 
+    private void initButtons() {
+        Pixmap pixmap = new Pixmap(32, 32, Format.RGBA8888);
+        pixmap.setColor(1, 0, 0, 0.5f);
+        pixmap.fill();
+        pixmap.setColor(1, 1, 0, 1);
+        pixmap.drawLine(0, 0, 32, 32);
+        pixmap.drawLine(32, 0, 0, 32);
+        pixmap.setColor(0, 1, 1, 1);
+        pixmap.drawRectangle(0, 0, 32, 32);
+
+        button = new Sprite(new Texture(pixmap));
+        button.setSize(1, 1);
+        button.setOrigin(button.getWidth() / 2.0f, button.getHeight() / 2.0f);
+        button.setPosition(0, 0);
+    }
+
     private Texture createBlankBoardPointTexture() {
         Pixmap pixmap = new Pixmap(Constants.SPRITE_WIDTH, Constants.SPRITE_HEIGHT, Format.RGBA8888);
         pixmap.setColor(38.0f / 255.0f, 102.0f / 255.0f, 41.0f / 255.0f, 0);
@@ -147,6 +178,9 @@ public class WorldController extends InputAdapter {
                 cameraHelper.setTarget(cameraHelper.hasTarget() ? null : testSprites[selectedSprite]);
 
                 break;
+            case Keys.ESCAPE:
+            case Keys.BACK:
+                backToMenu();
         }
 
         return false;
@@ -154,6 +188,10 @@ public class WorldController extends InputAdapter {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if (cameraHelper.camera == null) {
+            return false;
+        }
+
         _lastDragCoords.x = screenX;
         _lastDragCoords.y = screenY;
         cameraHelper.camera.unproject(_lastDragCoords);
@@ -225,18 +263,24 @@ public class WorldController extends InputAdapter {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        if (cameraHelper.camera == null) {
+            return false;
+        }
+
         Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
         cameraHelper.camera.unproject(draggedTouch);
 
         Gdx.app.debug(TAG, "Coords: " + draggedTouch.x + " " + draggedTouch.y);
-
-        //Gdx.app.debug(TAG, "Difference: " + (draggedTouch.x - testVector.x) + " " + (draggedTouch.y - testVector.y));
 
         return false;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        if (cameraHelper.camera == null) {
+            return false;
+        }
+
         testVector = new Vector3(screenX, screenY, 0);
         cameraHelper.camera.unproject(testVector);
 
