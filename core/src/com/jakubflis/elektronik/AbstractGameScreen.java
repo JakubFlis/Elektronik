@@ -4,9 +4,9 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 
 public class AbstractGameScreen implements Screen {
-    protected Game game;
+    protected JFElektronik game;
 
-    public AbstractGameScreen (Game game) {
+    public AbstractGameScreen (JFElektronik game) {
         this.game = game;
     }
 

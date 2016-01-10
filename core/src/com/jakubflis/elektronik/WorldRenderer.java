@@ -38,6 +38,15 @@ public class WorldRenderer implements Disposable {
         renderGui();
     }
 
+    public void renderMenu() {
+        _batch.setProjectionMatrix(_camera.combined);
+        _batch.begin();
+
+        _worldController.menu.draw(_batch);
+
+        _batch.end();
+    }
+
     public void resize(int width, int height) {
         _camera.viewportWidth = (Constants.VIEWPORT_HEIGHT / height) * width;
         _camera.update();
@@ -51,11 +60,9 @@ public class WorldRenderer implements Disposable {
         _batch.setProjectionMatrix(_camera.combined);
         _batch.begin();
 
-        for (Sprite sprite : _worldController.testSprites) {
+        for (Sprite sprite : _worldController.currentSprites) {
             sprite.draw(_batch);
         }
-
-        _worldController.button.draw(_batch);
 
         _batch.end();
     }
@@ -76,6 +83,7 @@ public class WorldRenderer implements Disposable {
 
         if (_worldController.percentageScore == 100) {
             _worldController.isCountdownWorking = false;
+            _worldController.gameState = GameScreen.GameState.GAME_WON;
 
             glyphLayout.setText(assetsFonts.finalResultString, "Wygrana!");
             assetsFonts.finalResultString.setColor(0, 1.0f, 0, 1.0f);
@@ -85,6 +93,7 @@ public class WorldRenderer implements Disposable {
         if ((int)_worldController.secondsLeft == 0) {
             _worldController.secondsLeft = 0;
             _worldController.isCountdownWorking = false;
+            _worldController.gameState = GameScreen.GameState.GAME_LOST;
 
             glyphLayout.setText(assetsFonts.finalResultString, "Przegrana!");
             assetsFonts.finalResultString.setColor(1.0f, 0, 0, 1.0f);

@@ -1,11 +1,11 @@
 package com.jakubflis.elektronik;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,58 +13,68 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
+import java.util.List;
+
 public class WorldController extends InputAdapter {
     public CameraHelper cameraHelper;
-    public BoardPointSprite[] testSprites;
+    public BoardPointSprite[] currentSprites;
     public AssetsFonts fonts;
     public Sprite button;
+    public Sprite menu;
     public int selectedSprite;
     public int blowStrength;
     public float secondsLeft;
     public float percentageScore;
     public boolean isCountdownWorking;
-    private Game _game;
+    public GameScreen.GameState gameState;
+    private JFElektronik _game;
+    private int _currentLevel = 0;
     private int _totalCollected;
     private int _totalCollectables;
-    private static final String TAG = WorldController.class.getName();
     private Vector3 _lastDragCoords;
-    private int[][] _gameBoard = new int[][] {
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 1, 1, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 13, 1, 1, 1, 1, 4, 0, 0, 0, 0, 0 },
-            { 0, 12, 1, 1, 1, 1, 2, 10, 10, 3, 1, 13, 5, 13, 1, 1, 13, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 6, 1, 1, 5, 0, 13, 1, 1, 4, 0, 0, 0, 0, 15, 10, 16, 6, 1, 12, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 13, 4, 14, 0, 0, 0, 0, 0, 18, 0, 14, 0, 0, 0 },
-            { 0, 12, 1, 1, 1, 4, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 7, 13, 1, 1, 4, 0, 14, 0, 14, 0, 12, 0 },
-            { 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 14, 0, 14, 0, 14, 0, 14, 0 },
-            { 0, 0, 0, 0, 0, 7, 13, 1, 13, 0, 13, 0, 8, 8, 0, 0, 0, 14, 0, 0, 0, 0, 13, 0, 13, 0, 13, 0, 14, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 19, 19, 0, 0, 0, 14, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 14, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 7, 1, 1, 2, 10, 10, 3, 1, 1, 11, 1, 2, 10, 3, 1, 1, 1, 1, 1, 1, 5, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 19, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-    };
-
+    private List<int[][]> _gameLevels;
+    private static final String TAG = WorldController.class.getName();
     private Vector3 testVector;
 
-    public WorldController(Game game) {
+    public WorldController(JFElektronik game) {
         _game = game;
+
         init();
     }
 
     public void init() {
         cameraHelper = new CameraHelper();
-        initTestObjects();
-        initButtons();
+        _gameLevels = LevelBoards.getLevelArrays();
+        initSprites();
         fonts = new AssetsFonts();
         blowStrength = 0;
         _totalCollected = 0;
-        _totalCollectables = getNumberOfClickableTiles(testSprites);
+        _totalCollectables = getNumberOfClickableTiles(currentSprites);
         percentageScore = 0;
         _lastDragCoords = new Vector3(0, 0, 0);
-        secondsLeft = 60;
+        secondsLeft = LevelBoards.levelDuration[_currentLevel];
         isCountdownWorking = true;
-
+        gameState = GameScreen.GameState.GAME_ON;
         Gdx.input.setInputProcessor(this);
+    }
+
+    private void initSprites() {
+        initTestObjects();
+        initButtons();
+        initMainMenu();
+    }
+
+    private void reset() {
+        blowStrength = 0;
+        percentageScore = 0;
+        gameState = GameScreen.GameState.GAME_ON;
+        isCountdownWorking = true;
+        secondsLeft = LevelBoards.levelDuration[_currentLevel];
+        _totalCollected = 0;
+
+        initSprites();
+
+        _totalCollectables = getNumberOfClickableTiles(currentSprites);
     }
 
     public void update (float deltaTime) {
@@ -77,18 +87,19 @@ public class WorldController extends InputAdapter {
     }
 
     private void initTestObjects() {
-        int numberOfArrayRows = _gameBoard.length;
-        int numberOfArrayCols = _gameBoard[0].length;
+        int[][] gameBoard = _gameLevels.get(_currentLevel);
+        int numberOfArrayRows = gameBoard.length;
+        int numberOfArrayCols = gameBoard[0].length;
 
-        testSprites = new BoardPointSprite[numberOfArrayCols * numberOfArrayRows];
+        currentSprites = new BoardPointSprite[numberOfArrayCols * numberOfArrayRows];
 
-        Vector2 startingPosition = BoardPointHelper.getFirstBoardPointCoords(_gameBoard);
+        Vector2 startingPosition = BoardPointHelper.getFirstBoardPointCoords(gameBoard);
 
         float tempPosition = startingPosition.x;
         float tempYPosition = startingPosition.y;
         int counter = 0;
 
-        for (int[] a_testBoard : _gameBoard) {
+        for (int[] a_testBoard : gameBoard) {
 
             for (int i = 0; i < numberOfArrayCols; i++) {
                 BoardPointSprite sprite;
@@ -108,7 +119,7 @@ public class WorldController extends InputAdapter {
                 sprite.setOrigin(sprite.getWidth() / 2.0f, sprite.getHeight() / 2.0f);
                 sprite.setPosition(tempPosition, tempYPosition);
 
-                testSprites[counter++] = sprite;
+                currentSprites[counter++] = sprite;
                 tempPosition += Constants.SQUARE_SIZE;
             }
 
@@ -117,6 +128,13 @@ public class WorldController extends InputAdapter {
         }
 
         selectedSprite = 0;
+    }
+
+    private void initMainMenu() {
+        menu = new Sprite(new Texture("logo.png"));
+        menu.setSize(7, 5);
+        menu.setOrigin(menu.getWidth() / 2.0f, menu.getHeight() / 2.0f);
+        menu.setPosition(-3.6f, -2.5f);
     }
 
     private void initButtons() {
@@ -167,16 +185,16 @@ public class WorldController extends InputAdapter {
 
                 break;
             case Keys.SPACE:
-                selectedSprite = (selectedSprite + 1) % testSprites.length;
+                selectedSprite = (selectedSprite + 1) % currentSprites.length;
 
                 if (cameraHelper.hasTarget()) {
-                    cameraHelper.setTarget(testSprites[selectedSprite]);
+                    cameraHelper.setTarget(currentSprites[selectedSprite]);
                 }
 
                 break;
             case Keys.ENTER:
-                cameraHelper.setTarget(cameraHelper.hasTarget() ? null : testSprites[selectedSprite]);
-
+                //cameraHelper.setTarget(cameraHelper.hasTarget() ? null : currentSprites[selectedSprite]);
+                manageLevels(gameState);
                 break;
             case Keys.ESCAPE:
             case Keys.BACK:
@@ -196,7 +214,7 @@ public class WorldController extends InputAdapter {
         _lastDragCoords.y = screenY;
         cameraHelper.camera.unproject(_lastDragCoords);
 
-        for (BoardPointSprite sprite : testSprites) {
+        for (BoardPointSprite sprite : currentSprites) {
             collectIfCollectable(sprite, _lastDragCoords.x, _lastDragCoords.y, false);
             checkOveflowedBoardTiles(_lastDragCoords);
         }
@@ -207,7 +225,7 @@ public class WorldController extends InputAdapter {
     public void checkOveflowedBoardTiles(Vector3 baseTouchCoords) {
         if (blowStrength >= 25 && blowStrength < 50) {
 
-            for (BoardPointSprite sprite : testSprites) {
+            for (BoardPointSprite sprite : currentSprites) {
                 //vertical:
                 collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + Constants.SQUARE_SIZE, true);
                 collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y - Constants.SQUARE_SIZE, true);
@@ -216,7 +234,7 @@ public class WorldController extends InputAdapter {
                 collectIfCollectable(sprite, baseTouchCoords.x - Constants.SQUARE_SIZE, baseTouchCoords.y, true);
             }
         } else if (blowStrength >= 50 && blowStrength < 75) {
-            for (BoardPointSprite sprite : testSprites) {
+            for (BoardPointSprite sprite : currentSprites) {
                 //vertical:
                 collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + 2 * Constants.SQUARE_SIZE, true);
                 collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + Constants.SQUARE_SIZE, true);
@@ -289,6 +307,33 @@ public class WorldController extends InputAdapter {
 
     public float computeCopletePercentage() {
         return ((float)_totalCollected / (float)_totalCollectables) * 100;
+    }
+
+    private void manageLevels(GameScreen.GameState gameState) {
+        switch (gameState) {
+            case GAME_LOST:
+                Gdx.app.debug("TA", "NO MORE LEVELS!");
+                break;
+            case GAME_WON:
+                Gdx.gl.glClearColor(0x64 / 255.0f, 0x95 / 255.0f, 0xed /
+                        255.0f, 0xff / 255.0f);
+                Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
+
+                if ((_currentLevel + 1) < _gameLevels.size()) {
+                    _currentLevel++;
+
+                    reset();
+
+                    _game.worldRenderer.render();
+                } else {
+                    _game.worldRenderer.renderMenu();
+                }
+
+                break;
+            default:
+                Gdx.app.debug("TA", "Game's still on...");
+                break;
+        }
     }
 
     private void handleInputDigit(float deltaTime) {
