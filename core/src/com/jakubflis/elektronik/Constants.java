@@ -8,4 +8,5 @@ public class Constants {
     public static final int SPRITE_WIDTH = 32;
     public static final int SPRITE_HEIGHT = 32;
     public static final float SQUARE_SIZE = 0.3f;
+    public static final int MAX_POINTS = 1000;
 }

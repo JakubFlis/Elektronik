@@ -9,6 +9,7 @@ public class AssetsFonts {
     public final BitmapFont finalResultString;
     public final BitmapFont countdownTimer;
     public final BitmapFont blowStrength;
+    public final BitmapFont levelNumber;
 
     public AssetsFonts() {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("images/Symtext.ttf"));
@@ -27,6 +28,10 @@ public class AssetsFonts {
         countdownTimer = createFont(generator, 16);
         countdownTimer.setColor(0.3f, 1.0f, 1.0f, 1.0f);
         countdownTimer.getData().setScale(.07f, .07f);
+
+        levelNumber = createFont(generator, 16);
+        levelNumber.setColor(0.8f, 0.3f, 0.9f, 1.0f);
+        levelNumber.getData().setScale(.07f, .07f);
     }
 
     private BitmapFont createFont(FreeTypeFontGenerator generator, float dp)

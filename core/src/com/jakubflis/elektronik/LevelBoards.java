@@ -4,7 +4,7 @@ import java.util.*;
 
 public class LevelBoards {
     //An array of each level's time limit
-    public static float[] levelDuration = new float[] { 60.0f, 50.0f };
+    public static float[] levelDuration = new float[] { 8.0f, 50.0f };
 
     private static int[][] _level1 = new int[][] {
             { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },

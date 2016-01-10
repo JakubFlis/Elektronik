@@ -27,8 +27,8 @@ public class WorldController extends InputAdapter {
     public float percentageScore;
     public boolean isCountdownWorking;
     public GameScreen.GameState gameState;
+    public int currentLevel = 0;
     private JFElektronik _game;
-    private int _currentLevel = 0;
     private int _totalCollected;
     private int _totalCollectables;
     private Vector3 _lastDragCoords;
@@ -38,7 +38,6 @@ public class WorldController extends InputAdapter {
 
     public WorldController(JFElektronik game) {
         _game = game;
-
         init();
     }
 
@@ -52,7 +51,7 @@ public class WorldController extends InputAdapter {
         _totalCollectables = getNumberOfClickableTiles(currentSprites);
         percentageScore = 0;
         _lastDragCoords = new Vector3(0, 0, 0);
-        secondsLeft = LevelBoards.levelDuration[_currentLevel];
+        secondsLeft = LevelBoards.levelDuration[currentLevel];
         isCountdownWorking = true;
         gameState = GameScreen.GameState.GAME_ON;
         Gdx.input.setInputProcessor(this);
@@ -69,7 +68,7 @@ public class WorldController extends InputAdapter {
         percentageScore = 0;
         gameState = GameScreen.GameState.GAME_ON;
         isCountdownWorking = true;
-        secondsLeft = LevelBoards.levelDuration[_currentLevel];
+        secondsLeft = LevelBoards.levelDuration[currentLevel];
         _totalCollected = 0;
 
         initSprites();
@@ -82,12 +81,8 @@ public class WorldController extends InputAdapter {
         cameraHelper.update(deltaTime);
     }
 
-    private void backToMenu() {
-        _game.setScreen(new MenuScreen(_game));
-    }
-
     private void initTestObjects() {
-        int[][] gameBoard = _gameLevels.get(_currentLevel);
+        int[][] gameBoard = _gameLevels.get(currentLevel);
         int numberOfArrayRows = gameBoard.length;
         int numberOfArrayCols = gameBoard[0].length;
 
@@ -193,12 +188,17 @@ public class WorldController extends InputAdapter {
 
                 break;
             case Keys.ENTER:
-                //cameraHelper.setTarget(cameraHelper.hasTarget() ? null : currentSprites[selectedSprite]);
                 manageLevels(gameState);
+
                 break;
             case Keys.ESCAPE:
-            case Keys.BACK:
-                backToMenu();
+                Gdx.app.exit();
+
+                break;
+            case Keys.S:
+                HighscoreManager.saveHighscoreFile(percentageScore);
+
+                break;
         }
 
         return false;
@@ -206,7 +206,7 @@ public class WorldController extends InputAdapter {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        if (cameraHelper.camera == null) {
+        if (cameraHelper.camera == null || gameState != GameScreen.GameState.GAME_ON) {
             return false;
         }
 
@@ -288,7 +288,13 @@ public class WorldController extends InputAdapter {
         Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
         cameraHelper.camera.unproject(draggedTouch);
 
-        Gdx.app.debug(TAG, "Coords: " + draggedTouch.x + " " + draggedTouch.y);
+        //Gdx.app.debug(TAG, "Coords: " + draggedTouch.x + " " + draggedTouch.y);
+        if (HighscoreManager.tempBlowingTime != null) {
+            float diff = (System.currentTimeMillis() - HighscoreManager.tempBlowingTime) / 1000.0f;
+            HighscoreManager.totalBlowingTime += diff;
+
+            Gdx.app.debug(TAG, "Total elapsewd: " + HighscoreManager.totalBlowingTime + " Diff " + diff + " total app time: " + HighscoreManager.totalTime);
+        }
 
         return false;
     }
@@ -302,6 +308,8 @@ public class WorldController extends InputAdapter {
         testVector = new Vector3(screenX, screenY, 0);
         cameraHelper.camera.unproject(testVector);
 
+        HighscoreManager.tempBlowingTime = System.currentTimeMillis();
+
         return false;
     }
 
@@ -312,15 +320,24 @@ public class WorldController extends InputAdapter {
     private void manageLevels(GameScreen.GameState gameState) {
         switch (gameState) {
             case GAME_LOST:
-                Gdx.app.debug("TA", "NO MORE LEVELS!");
+                Gdx.gl.glClearColor(0x64 / 255.0f, 0x95 / 255.0f, 0xed /
+                        255.0f, 0xff / 255.0f);
+                Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
+
+                currentLevel = 0;
+
+                reset();
+
+                _game.worldRenderer.render();
+
                 break;
             case GAME_WON:
                 Gdx.gl.glClearColor(0x64 / 255.0f, 0x95 / 255.0f, 0xed /
                         255.0f, 0xff / 255.0f);
                 Gdx.gl.glClear(GL30.GL_COLOR_BUFFER_BIT);
 
-                if ((_currentLevel + 1) < _gameLevels.size()) {
-                    _currentLevel++;
+                if ((currentLevel + 1) < _gameLevels.size()) {
+                    currentLevel++;
 
                     reset();
 
@@ -331,7 +348,7 @@ public class WorldController extends InputAdapter {
 
                 break;
             default:
-                Gdx.app.debug("TA", "Game's still on...");
+                Gdx.app.debug("status", "Game's still on...");
                 break;
         }
     }

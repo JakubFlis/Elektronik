@@ -16,6 +16,7 @@ public class WorldRenderer implements Disposable {
     private WorldController _worldController;
     private GlyphLayout glyphLayout = new GlyphLayout();
     private AssetsFonts assetsFonts = new AssetsFonts();
+    private long startTime = java.lang.System.currentTimeMillis();
 
     public WorldRenderer(WorldController _worldController) {
         this._worldController = _worldController;
@@ -79,7 +80,9 @@ public class WorldRenderer implements Disposable {
                         -1.0f * Constants.VIEWPORT_GUI_WIDTH + 2.2f,
                         -1.0f * (Constants.VIEWPORT_GUI_HEIGHT / 2) + 1.2f);
 
-        assetsFonts.countdownTimer.draw(_batch, "" + new DecimalFormat("#.0").format(_worldController.secondsLeft) + "s", 0, (Constants.VIEWPORT_GUI_HEIGHT / 2) - 1.0f);
+        assetsFonts.countdownTimer.draw(_batch, "" + new DecimalFormat("#.0").format(_worldController.secondsLeft) + "s", 0, (Constants.VIEWPORT_GUI_HEIGHT / 2) - 2.0f);
+
+        assetsFonts.levelNumber.draw(_batch, "lvl " + (_worldController.currentLevel + 1), 0, (Constants.VIEWPORT_GUI_HEIGHT / 2) - 1.0f);
 
         if (_worldController.percentageScore == 100) {
             _worldController.isCountdownWorking = false;
@@ -107,6 +110,8 @@ public class WorldRenderer implements Disposable {
         if (_worldController.isCountdownWorking) {
             _worldController.secondsLeft -= Gdx.graphics.getDeltaTime();
         }
+
+        HighscoreManager.totalTime = ((System.currentTimeMillis() - startTime) / 1000.0f);
     }
 
     @Override
