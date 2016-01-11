@@ -4,6 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 
+/**
+ * Klasa przechowująca wszystkie bitmapy czcionek i
+ * definiująca ich najważniejsze właściwości.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class AssetsFonts {
     public final BitmapFont percentageResult;
     public final BitmapFont finalResultString;
@@ -30,7 +37,7 @@ public class AssetsFonts {
         countdownTimer.getData().setScale(.07f, .07f);
 
         levelNumber = createFont(generator, 16);
-        levelNumber.setColor(0.8f, 0.3f, 0.9f, 1.0f);
+        levelNumber.setColor(1, 1, 1, 1);
         levelNumber.getData().setScale(.07f, .07f);
     }
 

@@ -3,6 +3,13 @@ package com.jakubflis.elektronik;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL30;
 
+/**
+ * Klasa dziedzicząca po AbstractGameScreen. Określa widok dostępny
+ * na ekranie od razu po uruchomieniu gry.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class MenuScreen extends AbstractGameScreen {
     private static final String TAG = MenuScreen.class.getName();
 

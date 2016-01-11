@@ -1,8 +1,15 @@
 package com.jakubflis.elektronik;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
 
+/**
+ * Abstrakcyjna klasa implementąca interfejs Screen,
+ * będący odpowiednikiem ekranu wyświetlanego w oknie
+ * gry.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class AbstractGameScreen implements Screen {
     protected JFElektronik game;
 

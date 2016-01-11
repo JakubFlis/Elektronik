@@ -1,10 +1,25 @@
 package com.jakubflis.elektronik;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * Klasa zawierająca metody potrzebne do prawidłowego
+ * zdefiniowania źródła i początkowego położenia
+ * kafelków planszy.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class BoardPointHelper {
 
+    /**
+     * Zwraca nazwę pliku graficznego odpowiadającego za wizerunek
+     * kafelka na planszy.
+     *
+     * @param boardCode jest to kod kafelka zapisany w tablicy zdefiniowanej
+     *                  w klasie LevelBoards
+     * @return nazwa pliku graficznego
+     */
     public static String getBoartPointAssetName(int boardCode) {
         switch (boardCode) {
             case 1:
@@ -22,9 +37,9 @@ public class BoardPointHelper {
             case 7:
                 return "corner_4.png";
             case 8:
-                return "lowerhalf.png";
+                return "lowerhalf_f.png";
             case 9:
-                return "upperhalf.png";
+                return "upperhalf_f.png";
             case 10:
                 return "full.png";
             case 11:
@@ -36,20 +51,29 @@ public class BoardPointHelper {
             case 14:
                 return "normal_v.png";
             case 15:
-                return "righthalf.png";
+                return "righthalf_f.png";
             case 16:
-                return "lefthalf.png";
+                return "lefthalf_f.png";
             case 17:
                 return "crescendo_v.png";
             case 18:
                 return "decrescendo_v.png";
             case 19:
-                return "full_overflowed.png";
+                return "full_overflowed_f.png";
             default:
                 return null;
         }
     }
-
+    /**
+     * Określa, czy kafelek może zostać uznany za zaliczony przy pomocy
+     * tradycyjnego ruchu, czy wymaga dodatkowej siły ruchu (w przypadku
+     * eDmuchawki - mocniejszego dmuchnięcia).
+     *
+     * @param boardCode jest to kod kafelka zapisany w tablicy zdefiniowanej
+     *                  w klasie LevelBoards
+     * @return true, jeśli wymaga wzmocnionego ruchu, false, jeśli wymaga
+     * tradycyjnego ruchu
+     */
     public static boolean getBoartPointOverflowedStatus(int boardCode) {
         switch (boardCode) {
             case 8:
@@ -63,10 +87,19 @@ public class BoardPointHelper {
         }
     }
 
+    /**
+     * Oblicza współrzędne rysowania pierwszego kafelka.
+     *
+     * @param boardTable Jest to tablica kodów wszystkich kafelków.
+     *                   Wymagany jest tylko jej wymiar.
+     * @return wektor zawierający współrzędne wynikające z rozmiaru
+     * tablicy pomniejszone o miejsce potrzebne dla interfejsu
+     * graficznego.
+     */
     public static Vector2 getFirstBoardPointCoords(int[][] boardTable) {
         float height = boardTable.length * Constants.SQUARE_SIZE;
         float width = boardTable[0].length * Constants.SQUARE_SIZE;
 
-        return new Vector2(-1 * (width / 2.0f), height / 2.0f);
+        return new Vector2(-1 * (width / 2.0f), (height / 2.0f) - (2 * Constants.SQUARE_SIZE));
     }
 }

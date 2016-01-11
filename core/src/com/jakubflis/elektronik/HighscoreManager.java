@@ -7,12 +7,26 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+/**
+ * Klasa odpowiadająca za generowanie i zapisywanie pliku .txt
+ * z wynikami.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class HighscoreManager {
     public static String username;
     public static float totalTime;
     public static float totalBlowingTime;
     public static Long tempBlowingTime;
 
+    /**
+     * Generuje nazwe pliku, następnie zapisuje plik na dysku twardym.
+     *
+     * @param percentageScore jest to wynik procentowy przesyłany przez
+     *                        klasę WorldController.
+     * @see WorldController
+     */
     public static void saveHighscoreFile(float percentageScore) {
         String filename = "Highscore_" + username + "_" + getCurrentDate("yyyy_MM_dd_HH_mm_ss") + ".txt";
         float score = mapPercentageScore(percentageScore);
@@ -28,6 +42,12 @@ public class HighscoreManager {
         }
     }
 
+    /**
+     * Zwraca odpowiednio sformatowaną, aktualną datę
+     *
+     * @param format jest to docelowy format daty.
+     * @return data
+     */
     private static String getCurrentDate(String format) {
         DateFormat dateFormat = new SimpleDateFormat(format);
         Calendar cal = Calendar.getInstance();

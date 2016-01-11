@@ -15,12 +15,20 @@ import com.badlogic.gdx.math.Vector3;
 
 import java.util.List;
 
+/**
+ * Obszerna klasa definiująca zachowanie gry, posiadająca całą logikę biznesową projektu.
+ * Bezpośrednio wpływa na właściwości i zachowanie obiektów widocznych na ekranie podczas gry.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class WorldController extends InputAdapter {
     public CameraHelper cameraHelper;
     public BoardPointSprite[] currentSprites;
     public AssetsFonts fonts;
-    public Sprite button;
     public Sprite menu;
+    public Sprite board;
+    public Sprite exitScreen;
     public int selectedSprite;
     public int blowStrength;
     public float secondsLeft;
@@ -41,6 +49,9 @@ public class WorldController extends InputAdapter {
         init();
     }
 
+    /**
+     * Funckja łącząca wszystkie inicjalizacje pól tej klasy.
+     */
     public void init() {
         cameraHelper = new CameraHelper();
         _gameLevels = LevelBoards.getLevelArrays();
@@ -57,12 +68,20 @@ public class WorldController extends InputAdapter {
         Gdx.input.setInputProcessor(this);
     }
 
+    /**
+     * Inicjalizuje wszystkie obiekty typu Sprite, które zostały zdefiniowane
+     * jako pola tej klasy.
+     */
     private void initSprites() {
-        initTestObjects();
-        initButtons();
+        initBoardObjects();
         initMainMenu();
+        initExitScreen();
+        initBoard();
     }
 
+    /**
+     * Resetuje wszystkie liczniki i status gry.
+     */
     private void reset() {
         blowStrength = 0;
         percentageScore = 0;
@@ -76,12 +95,20 @@ public class WorldController extends InputAdapter {
         _totalCollectables = getNumberOfClickableTiles(currentSprites);
     }
 
+    /**
+     * Podstawowa funkcja odświeżania widoku, wymuszona przez
+     * bibliotekę LibGDX.
+     */
     public void update (float deltaTime) {
         handleInputDigit(deltaTime);
         cameraHelper.update(deltaTime);
     }
 
-    private void initTestObjects() {
+    /**
+     * Inicjalizuje i umieszcza w układzie współrzędnych kafelki
+     * planszy.
+     */
+    private void initBoardObjects() {
         int[][] gameBoard = _gameLevels.get(currentLevel);
         int numberOfArrayRows = gameBoard.length;
         int numberOfArrayCols = gameBoard[0].length;
@@ -125,29 +152,45 @@ public class WorldController extends InputAdapter {
         selectedSprite = 0;
     }
 
+    /**
+     * Inicjalizuje i umieszcza w układzie współrzędnych elementy
+     * głównego menu.
+     */
     private void initMainMenu() {
-        menu = new Sprite(new Texture("logo.png"));
-        menu.setSize(7, 5);
+        menu = new Sprite(new Texture("main_menu.png"));
+        menu.setSize(9, 5);
         menu.setOrigin(menu.getWidth() / 2.0f, menu.getHeight() / 2.0f);
-        menu.setPosition(-3.6f, -2.5f);
+        menu.setPosition(-4.5f, -2.5f);
     }
 
-    private void initButtons() {
-        Pixmap pixmap = new Pixmap(32, 32, Format.RGBA8888);
-        pixmap.setColor(1, 0, 0, 0.5f);
-        pixmap.fill();
-        pixmap.setColor(1, 1, 0, 1);
-        pixmap.drawLine(0, 0, 32, 32);
-        pixmap.drawLine(32, 0, 0, 32);
-        pixmap.setColor(0, 1, 1, 1);
-        pixmap.drawRectangle(0, 0, 32, 32);
-
-        button = new Sprite(new Texture(pixmap));
-        button.setSize(1, 1);
-        button.setOrigin(button.getWidth() / 2.0f, button.getHeight() / 2.0f);
-        button.setPosition(0, 0);
+    /**
+     * Inicjalizuje i umieszcza w układzie współrzędnych rysunek
+     * płytki drukowanej.
+     */
+    private void initBoard() {
+        board = new Sprite(new Texture("board.png"));
+        board.setSize(10, 6);
+        board.setOrigin(board.getWidth() / 2.0f, board.getHeight() / 2.0f);
+        board.setPosition(-5f, -3.3f);
     }
 
+    /**
+     * Inicjalizuje i umieszcza w układzie współrzędnych elementy
+     * wyświetlane po zakończeniu poziomu.
+     */
+    private void initExitScreen() {
+        exitScreen = new Sprite(new Texture("exit_screen.png"));
+        exitScreen.setSize(6, 5);
+        exitScreen.setOrigin(exitScreen.getWidth() / 2.0f, exitScreen.getHeight() / 2.0f);
+        exitScreen.setPosition(-3.1f, -4.5f);
+    }
+
+    /**
+     * Tworzy niewidzalne kafelki wypełniające planszę obok kafelków
+     * przeznaczonych do rozgrywki i zawierających teksturę.
+     *
+     * @return zwraca przezroczysty kafelek.
+     */
     private Texture createBlankBoardPointTexture() {
         Pixmap pixmap = new Pixmap(Constants.SPRITE_WIDTH, Constants.SPRITE_HEIGHT, Format.RGBA8888);
         pixmap.setColor(38.0f / 255.0f, 102.0f / 255.0f, 41.0f / 255.0f, 0);
@@ -156,6 +199,13 @@ public class WorldController extends InputAdapter {
         return new Texture(pixmap);
     }
 
+    /**
+     * Liczy ilość kafelków, które mogą zostać dotknięte
+     * przez użytkownika. Do takich kafelków nie zalicza się przezroczystych
+     * kafelków generowanych w funkcji createBlankBoardPointTexture.
+     *
+     * @return ilość wszystkich klikalnych kafelków
+     */
     private int getNumberOfClickableTiles(BoardPointSprite[] spriteTable) {
         int counter = 0;
 
@@ -166,18 +216,24 @@ public class WorldController extends InputAdapter {
         return counter;
     }
 
+    /**
+     * Porusza kamerą na planszy.
+     */
     private void moveCamera (float x, float y) {
         x += cameraHelper.getPosition().x;
         y += cameraHelper.getPosition().y;
         cameraHelper.setPosition(x, y);
     }
 
+    /**
+     * Reaguje na akcję zwolnienia przycisku na klawiaturze.
+     * Nie działa w projektach na urządzenia mobilne.
+     */
     @Override
     public boolean keyUp(int keycode) {
         switch (keycode) {
             case Keys.R:
                 init();
-
                 break;
             case Keys.SPACE:
                 selectedSprite = (selectedSprite + 1) % currentSprites.length;
@@ -185,25 +241,26 @@ public class WorldController extends InputAdapter {
                 if (cameraHelper.hasTarget()) {
                     cameraHelper.setTarget(currentSprites[selectedSprite]);
                 }
-
                 break;
             case Keys.ENTER:
                 manageLevels(gameState);
-
                 break;
             case Keys.ESCAPE:
                 Gdx.app.exit();
-
                 break;
             case Keys.S:
                 HighscoreManager.saveHighscoreFile(percentageScore);
-
                 break;
         }
 
         return false;
     }
 
+    /**
+     * Reaguje na przeciągnięcie kursora/palca po powierzchni ekranu gry.
+     * Iteruje po wszystkich kafelkach i przesyła do rozoznania, czy kafelek
+     * nadaje się do zaliczenia punktu.
+     */
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if (cameraHelper.camera == null || gameState != GameScreen.GameState.GAME_ON) {
@@ -222,6 +279,14 @@ public class WorldController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Sprawdza siłę dmuchnięcia eDmuchawką i reaguje w odpowiedni
+     * sposób na kafelkach planszy.
+     *
+     * @param baseTouchCoords przełożony na współrzędne planszy koordynaty
+     *                        względem których funkcja podejmuje decyzję
+     *                        o zaliczeniu (lub nie) punktu
+     */
     public void checkOveflowedBoardTiles(Vector3 baseTouchCoords) {
         if (blowStrength >= 25 && blowStrength < 50) {
 
@@ -233,7 +298,7 @@ public class WorldController extends InputAdapter {
                 collectIfCollectable(sprite, baseTouchCoords.x + Constants.SQUARE_SIZE, baseTouchCoords.y, true);
                 collectIfCollectable(sprite, baseTouchCoords.x - Constants.SQUARE_SIZE, baseTouchCoords.y, true);
             }
-        } else if (blowStrength >= 50 && blowStrength < 75) {
+        } else if (blowStrength >= 50 && blowStrength < 100) {
             for (BoardPointSprite sprite : currentSprites) {
                 //vertical:
                 collectIfCollectable(sprite, baseTouchCoords.x, baseTouchCoords.y + 2 * Constants.SQUARE_SIZE, true);
@@ -249,6 +314,16 @@ public class WorldController extends InputAdapter {
         }
     }
 
+    /**
+     * Jeśli kafelek jest przeznaczony do zebrania, odznacza go
+     * jako zaliczony.
+     *
+     * @param sprite sprite, o który pytana jest funkcja
+     * @param x współrzędne, w których użytkownik dotknął ekranu gry
+     * @param y
+     * @param isOverflowedAllowed określa, czy siła dmuchu pozwala na zaliczenie kilku
+     *                            kafelków jednocześnie
+     */
     private void collectIfCollectable(BoardPointSprite sprite, float x, float y, boolean isOverflowedAllowed) {
         if (sprite.getBoundingRectangle().contains(x, y)) {
 
@@ -257,7 +332,8 @@ public class WorldController extends InputAdapter {
             }
 
             if (sprite.isCollectable && !sprite.isCollected) {
-                sprite.setColor(Color.CHARTREUSE);
+                sprite.setColor(Color.CYAN);
+                //sprite.setColor(new Color(255.0f / 255.0f, 243.0f / 255.0f, 60.0f / 255.0f, 0.7f));
                 sprite.isCollected = true;
                 _totalCollected++;
 
@@ -266,6 +342,13 @@ public class WorldController extends InputAdapter {
         }
     }
 
+    /**
+     * Reaguje na scroll myszką.
+     * Symuluje eDmuchawkę.
+     *
+     * @param amount wartość scrolla. Dodatnia dla scrolla w przód, ujemna
+     *               dla scrolla w tył.
+     */
     @Override
     public boolean scrolled(int amount) {
         if (amount > 0 && blowStrength < 100) {
@@ -279,6 +362,9 @@ public class WorldController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Reaguje na akcję podniesienia palca/przycisku na myszce.
+     */
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (cameraHelper.camera == null) {
@@ -288,7 +374,6 @@ public class WorldController extends InputAdapter {
         Vector3 draggedTouch = new Vector3(screenX, screenY, 0);
         cameraHelper.camera.unproject(draggedTouch);
 
-        //Gdx.app.debug(TAG, "Coords: " + draggedTouch.x + " " + draggedTouch.y);
         if (HighscoreManager.tempBlowingTime != null) {
             float diff = (System.currentTimeMillis() - HighscoreManager.tempBlowingTime) / 1000.0f;
             HighscoreManager.totalBlowingTime += diff;
@@ -299,6 +384,9 @@ public class WorldController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Reaguje na akcję opuszczenia palca/przycisku na myszce.
+     */
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if (cameraHelper.camera == null) {
@@ -313,10 +401,20 @@ public class WorldController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Oblicza aktualny wynik procentowy gracza.
+     *
+     * @return wynik w procentach
+     */
     public float computeCopletePercentage() {
         return ((float)_totalCollected / (float)_totalCollectables) * 100;
     }
 
+    /**
+     * Reaguję na akcję przycisku Enter po zakończeniu poziomu.
+     *
+     * @param gameState stan gry po ukończeniu poziomu (przegrana/wygrana)
+     */
     private void manageLevels(GameScreen.GameState gameState) {
         switch (gameState) {
             case GAME_LOST:
@@ -338,9 +436,7 @@ public class WorldController extends InputAdapter {
 
                 if ((currentLevel + 1) < _gameLevels.size()) {
                     currentLevel++;
-
                     reset();
-
                     _game.worldRenderer.render();
                 } else {
                     _game.worldRenderer.renderMenu();
@@ -353,6 +449,10 @@ public class WorldController extends InputAdapter {
         }
     }
 
+    /**
+     * Reaguje na akcję kliknięcia klawiszy klawiatury.
+     * Nie działa na urządzeniach mobilnych.
+     */
     private void handleInputDigit(float deltaTime) {
         if (Gdx.app.getType() != Application.ApplicationType.Desktop) {
             return;

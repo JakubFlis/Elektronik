@@ -5,10 +5,19 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
+/**
+ * Klasa stworzona na potrzeby procesu tworzenia gry, dzięki niej
+ * można poruszać się po wyświetlonej planszy przy użyciu strzałek
+ * na klawiaturze, dodatkowo można również przybliżać i oddalać
+ * widok przy pomocy przycisków , oraz .
+ * Przycisk / resetuje zoom.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class CameraHelper {
     public OrthographicCamera camera;
     public OrthographicCamera guiCamera;
-    private static final String TAG = CameraHelper.class.getName();
     private final float MAX_ZOOM_IN = 0.25f;
     private final float MAX_ZOOM_OUT = 10.0f;
     private Vector2 _position;
@@ -44,24 +53,12 @@ public class CameraHelper {
         _zoom = MathUtils.clamp(zoom, MAX_ZOOM_IN, MAX_ZOOM_OUT);
     }
 
-    public float getZoom() {
-        return _zoom;
-    }
-
     public void setTarget (Sprite target) {
         _target = target;
     }
 
-    public Sprite getTarget () {
-        return _target;
-    }
-
     public boolean hasTarget () {
         return _target != null;
-    }
-
-    public boolean hasTarget (Sprite target) {
-        return hasTarget() && _target.equals(target);
     }
 
     public void applyTo (OrthographicCamera camera, OrthographicCamera guiCamera) {

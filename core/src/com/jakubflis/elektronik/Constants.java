@@ -1,5 +1,11 @@
 package com.jakubflis.elektronik;
-
+/**
+ * Klasa przechowująca wszystkie stałe używane globalnie
+ * w programie.
+ *
+ * @author  Jakub Flis
+ * @version 1.0
+ */
 public class Constants {
     public static final float VIEWPORT_WIDTH = 6.0f;
     public static final float VIEWPORT_HEIGHT = 6.0f;
